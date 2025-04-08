@@ -1,128 +1,58 @@
-let upload;
-let imageInput;
-let idOwnImage;
-
 document.addEventListener('DOMContentLoaded', () => {
-    upload = document.querySelector('.upload');
-    idOwnImage = document.querySelector('.id_own_image');
-    imageInput = document.createElement('input');
-    
-    imageInput.type = 'file';
-    imageInput.accept = 'image/.jpeg,image/.png,image/.gif';
-    imageInput.style.display = 'none';
-    document.body.appendChild(imageInput);
+    const goButton = document.querySelector('.go');
+    const inputs = document.querySelectorAll('.input');
+    const dateInputs = document.querySelectorAll('.date_input');
+    const errors = document.querySelectorAll('.error');
 
-    upload.addEventListener('click', () => {
-        imageInput.value = '';
-        imageInput.click();
-        upload.classList.remove('error_shown');
-    });
+    goButton.addEventListener('click', () => {
+        let isValid = true;
 
-    imageInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+        // Resetowanie komunikatów o błędach
+        errors.forEach(error => error.style.display = 'none');
 
-        upload.classList.add('upload_loading');
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            localStorage.setItem('uploadedImage', e.target.result);
-            upload.querySelector('.upload_uploaded').src = e.target.result;
-            upload.classList.remove('upload_loading');
-            upload.classList.add('upload_loaded');
-        };
-        reader.onerror = () => {
-            upload.classList.remove('upload_loading');
-            showError('Błąd podczas odczytu pliku');
-        };
-        reader.readAsDataURL(file);
-    });
-});
+        // Walidacja pól tekstowych
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                input.nextElementSibling.nextElementSibling.style.display = 'block'; // Wyświetl błąd
+                isValid = false;
+            }
+        });
 
-var selector = document.querySelector(".selector_box");
-selector.addEventListener('click', () => {
-    selector.classList.toggle("selector_open");
-});
+        // Walidacja daty urodzenia
+        const [day, month, year] = dateInputs;
+        const dayValue = parseInt(day.value);
+        const monthValue = parseInt(month.value);
+        const yearValue = parseInt(year.value);
 
-document.querySelectorAll(".date_input").forEach((element) => {
-    element.addEventListener('click', () => {
-        document.querySelector(".date").classList.remove("error_shown");
-    });
-});
+        if (!dayValue || !monthValue || !yearValue || 
+            dayValue < 1 || dayValue > 31 || 
+            monthValue < 1 || monthValue > 12 || 
+            yearValue < 1900 || yearValue > new Date().getFullYear()) {
+            day.parentElement.nextElementSibling.style.display = 'block'; // Wyświetl błąd daty
+            isValid = false;
+        }
 
-var sex = "m";
-document.querySelectorAll(".selector_option").forEach((option) => {
-    option.addEventListener('click', () => {
-        sex = option.id;
-        document.querySelector(".selected_text").innerHTML = option.innerHTML;
-    });
-});
+        // Jeśli wszystko jest poprawne, zapisz dane i przekieruj
+        if (isValid) {
+            const formData = {
+                name: document.getElementById('name').value,
+                surname: document.getElementById('surname').value,
+                sex: document.querySelector('.selector_text').textContent === 'Mężczyzna' ? 'M' : 'K',
+                birthday: `${day.value.padStart(2, '0')}.${month.value.padStart(2, '0')}.${year.value}`,
+                nationality: document.getElementById('nationality').value,
+                familyName: document.getElementById('familyName').value,
+                fathersFamilyName: document.getElementById('fathersFamilyName').value,
+                mothersFamilyName: document.getElementById('mothersFamilyName').value,
+                birthPlace: document.getElementById('birthPlace').value,
+                countryOfBirth: document.getElementById('countryOfBirth').value,
+                address: `${document.getElementById('adress1').value}, ${document.getElementById('adress2').value}, ${document.getElementById('city').value}`
+            };
 
-document.querySelectorAll(".input_holder").forEach((element) => {
-    const input = element.querySelector(".input");
-    input.addEventListener('click', () => {
-        element.classList.remove("error_shown");
-    });
-});
+            // Zapis do localStorage
+            localStorage.setItem('userData', JSON.stringify(formData));
 
-document.querySelector(".go").addEventListener('click', processForm);
-
-function processForm() {
-    var empty = [];
-    var params = new URLSearchParams();
-
-    var birthday = "";
-    var dateEmpty = false;
-    document.querySelectorAll(".date_input").forEach((element) => {
-        birthday = birthday + "." + element.value;
-        if (isEmpty(element.value)) {
-            dateEmpty = true;
+            // Przekierowanie na stronę główną
+            window.location.href = 'home.html';
         }
     });
-
-    birthday = birthday.substring(1);
-
-    if (dateEmpty) {
-        var dateElement = document.querySelector(".date");
-        dateElement.classList.add("error_shown");
-        empty.push(dateElement);
-    } else {
-        params.set("birthday", birthday);
-        params.set("sex", sex);
-    }
-
-    document.querySelectorAll(".input_holder").forEach((element) => {
-        var input = element.querySelector(".input");
-        if (isEmpty(input.value)) {
-            empty.push(element);
-            element.classList.add("error_shown");
-        } else {
-            params.set(input.id, input.value);
-            localStorage.setItem(`input_${input.id}`, input.value);
-        }
-    });
-
-    if (empty.length === 0) {
-        forwardToId(params);
-    } else {
-        empty[0].scrollIntoView({ behavior: 'smooth' });
-    }
-}
-
-function forwardToId(params) {
-    const formData = {
-        params: params.toString(),
-        image: localStorage.getItem('uploadedImage') || ''
-    };
-    localStorage.setItem('formData', JSON.stringify(formData));
-    window.location.href = '/id?' + params.toString();
-}
-
-function isEmpty(value) {
-    return /^\s*$/.test(value);
-}
-
-var guide = document.querySelector(".guide_holder");
-guide.addEventListener('click', () => {
-    guide.classList.toggle("unfolded");
 });
