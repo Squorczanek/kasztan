@@ -1,3 +1,19 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const userData = JSON.parse(localStorage.getItem('userData')) || {};
+    
+    document.getElementById('name').textContent = userData.name || '';
+    document.getElementById('surname').textContent = userData.surname || '';
+    document.getElementById('nationality').textContent = userData.nationality || '';
+    document.getElementById('birthday').textContent = userData.birthday || '';
+    document.getElementById('familyName').textContent = userData.familyName || '';
+    document.getElementById('fathersFamilyName').textContent = userData.fathersFamilyName || '';
+    document.getElementById('mothersFamilyName').textContent = userData.mothersFamilyName || '';
+    document.getElementById('birthPlace').textContent = userData.birthPlace || '';
+    document.getElementById('countryOfBirth').textContent = userData.countryOfBirth || '';
+    document.getElementById('adress').textContent = userData.address || '';
+    document.getElementById('sex').textContent = userData.sex || '';
+});
+
 <head>
     <title>mObywatel</title>
     <meta charset="UTF-8">
